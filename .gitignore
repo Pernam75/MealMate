@@ -1,3 +1,2 @@
-src/
 *.code-workspace
-!src\recipesDB\matrice.csv
+src/recipesDB/*
