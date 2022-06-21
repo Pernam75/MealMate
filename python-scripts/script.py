@@ -90,7 +90,7 @@ def find_similar_recipes(recipe_id, k, metric='cosine', show_distance=False):
     neighbour_ids.pop(0)
     return neighbour_ids
 
-def find_similar_users(user_id, k, metric='cosine', show_distance=False):
+def find_similar_users(user_id, ratings, k, metric='cosine', show_distance=False):
     """
     The find_similar_users function takes a user id, the matrix of users and their features, 
     the number of similar users to return (k), and an optional argument for whether or not you want to see 
@@ -106,7 +106,6 @@ def find_similar_users(user_id, k, metric='cosine', show_distance=False):
       
     neighbour_ids = []
 
-    ratings = create_ratings_df(50, 50)
     X, user_mapper, recipe_mapper, user_inv_mapper, recipe_inv_mapper = create_matrix(ratings)
 
     user_ind = user_mapper[user_id]
@@ -132,14 +131,14 @@ def user_based_classification_filtering(user_id, ratings):
     :param ratings: Store the ratings of all users
     :return: The list of recipes that are the most popular among the neighbours
     """
-    neighbours_ids = find_similar_users(user_id, 10, 'cosine', True)
+    neighbours_ids = find_similar_users(user_id, ratings, 10, 'cosine', True)
     recipes_ids = []
     ratings2 = ratings.copy()
     for id in neighbours_ids:
         added = False
         while not added:
-            if ratings2[ratings2['user_id']=='id'].loc[ratings2['recipe_id'].idxmax()] not in recipes_ids:
-                recipes_ids.append(ratings2[ratings2['user_id']=='id'].loc[ratings2['recipe_id'].idxmax()])
+            if ratings2[ratings2['user_id']==id].loc[ratings2['recipe_id'].idxmax()] not in recipes_ids:
+                recipes_ids.append(ratings2[ratings2['user_id']==id].loc[ratings2['recipe_id'].idxmax()])
                 added = True
             else:
                 ratings2 = ratings2.drop(ratings2[ratings2['user_id']=='id'].loc[ratings2['recipe_id'].idxmax()])
@@ -171,3 +170,32 @@ def get_ingredients(recipe_id):
         ingredient_amount = ingredient.find('span', class_='ingredient__quantity').text
         ingredients_dic[ingredient_name] = ingredient_amount
     return ingredients_dic
+
+def find_a_recipe(ratings, minimal_grade, user_id):
+    sub_ratings = ratings[ratings['user_id']==user_id].copy()
+    return sub_ratings.query(f"rating > {minimal_grade}").sample(n=1)['recipe_id']
+    
+
+def main(classification_type, user_id, precision_user = 50, precision_recipe = 50, minimal_grade = 4.0):
+    """
+    The main function takes a classification type, a user id and a recipe id as arguments. 
+    It then calls the appropriate function to return the list of recipes that are most popular among the neighbours.
+    
+    :param classification_type: Specify the type of classification to be used
+    :param user_id: Specify the user for which we want to find similar users
+    :param recipe_id: Specify the recipe for which we want to find similar recipes
+    :return: The list of recipes that are the most popular among the neighbours
+    """
+
+    ratings = create_ratings_df(precision_user, precision_recipe)
+
+    recipe_id = find_a_recipe(ratings, minimal_grade, user_id)
+
+    if classification_type == 'user':
+        return user_based_classification_filtering(user_id, ratings)
+    elif classification_type == 'recipe':
+        return item_based_classification_filtering(recipe_id)
+    else:
+        return "Invalid classification type"
+
+print(main('user', 1533))
