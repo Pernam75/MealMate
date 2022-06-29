@@ -11,7 +11,7 @@ def create_ratings_df(n_vote_user, n_vote_recipe):
     The create_ratings_df function creates a dataframe of the ratings from the RAW_interactions.csv file, 
     where each row is a user-recipe pair and contains their rating for that recipe. The function also filters out 
     any users who have rated less than n_vote_user recipes and any recipes that have been rated
-
+    
     :param n_vote_user: Filter the users that have voted at least n times
     :param n_vote_recipe: Filter the recipes that have been rated at least n times
     :return: A dataframe with the ratings of each user
@@ -37,10 +37,10 @@ def create_matrix(df):
     It maps user_id and recipe_id to indices, which are used as coordinates in the
     sparse matrix. The function also creates dictionaries that map IDs to indices
     and vice versa.
-
+    
+    
     :param df: Create the matrix
-    :return: The sparse matrix x
-    :doc-author: Trelent
+    :return: A sparse matrix of the ratings dataframe
     """
 
     N = len(df['user_id'].unique())
@@ -158,13 +158,15 @@ class Recipe:
 
     def get_ingredients(self):
         """
-        The get_ingredients function takes a recipe id as an argument and uses web scrapping to return
-        the ingredients and quantities for that recipe.
+        The get_ingredients function takes in a recipe id and returns the ingredients for that recipe.
+        The function first gets the URL of the recipe using get_url() and then uses BeautifulSoup to 
+        parse through it. It finds all of the ingredient tags, which are stored as lists, and iterates 
+        through
 
-
-        :param recipe_id: Get the recipe id from the url
-        :return: A dictionary of ingredients and their quantities
+        :param self: Reference the object that is calling the method
+        :return: A list of ingredient objects
         """
+
         URL = "https://www.food.com/recipe/" + str(self.recipe_id)
         page = requests.get(URL)
 
@@ -181,6 +183,13 @@ class Recipe:
         return ingTab
 
     def get_servings(self):
+        """
+        The get_servings function takes in a recipe_id and returns the number of servings that the recipe makes.
+        If there is no serving size listed, it will return None.
+        
+        :param self: Access variables that belongs to the class
+        :return: The number of servings for the recipe
+        """
         URL = "https://www.food.com/recipe/" + str(self.recipe_id)
         page = requests.get(URL)
 
@@ -198,6 +207,16 @@ class Recipe:
             return int(output)
 
     def get_time(self):
+        """
+        The get_time function scrapes the time it takes to make a recipe from food.com
+            Input: 
+                URL (string): The URL of the recipe being scraped
+            Output: 
+                total_time (string): The total amount of time it takes to make the recipe, in minutes
+        
+        :param self: Access variables that belongs to the class
+        :return: The total time it takes to make a recipe
+        """
         URL = "https://www.food.com/recipe/" + str(self.recipe_id)
         page = requests.get(URL)
 
@@ -205,6 +224,12 @@ class Recipe:
         return soup.select_one('dd.facts__value.facts__value--light.svelte-1avdnba').text
 
     def get_name(self):
+        """
+        The get_name function returns the name of a recipe given its Food.com ID number.
+        
+        :param self: Tell the function to refer to the object that called it
+        :return: The name of the recipe
+        """
         URL = "https://www.food.com/recipe/" + str(self.recipe_id)
         page = requests.get(URL)
 
@@ -219,7 +244,7 @@ ratings = create_ratings_df(50, 50)
 recipe_id = 486496
 similar_ids = find_similar_recipes(recipe_id, ratings, k=10)
 recipe = Recipe(recipe_id)
+print(recipe)
 print(f"Similar recipes to {recipe.name} are: ")
 for id in similar_ids:
-    print(id)
     print(Recipe(id).name)
