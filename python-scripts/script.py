@@ -40,6 +40,7 @@ def create_matrix(df):
 
     :param df: Create the matrix
     :return: The sparse matrix x
+    :doc-author: Trelent
     """
 
     N = len(df['user_id'].unique())
@@ -119,83 +120,106 @@ def find_similar_users(user_id, ratings, k, metric='cosine', show_distance=False
     return neighbour_ids
 
 
-def user_based_classification_filtering(user_id, ratings):
-    """
-    The user_based_classification_filtering function takes a user_id and ratings dataframe as input. 
-    It then finds the 10 most similar users to the given user_id, based on cosine similarity of their ratings vectors. 
-    The function then returns a list of recipe_ids that these 10 users have rated highly.
-    
-    :param user_id: Specify the user for which we want to find similar users
-    :param ratings: Store the ratings of all users
-    :return: The list of recipes that are the most popular among the neighbours
-    """
-    neighbours_ids = find_similar_users(user_id, ratings, 10, 'cosine', True)
-    recipes_ids = []
-    ratings2 = ratings.copy()
-    for id in neighbours_ids:
-        added = False
-        while not added:
-            if ratings2[ratings2['user_id'] == id].loc[ratings2['recipe_id'].idxmax()] not in recipes_ids:
-                recipes_ids.append(ratings2[ratings2['user_id'] == id].loc[ratings2['recipe_id'].idxmax()])
-                added = True
-            else:
-                ratings2 = ratings2.drop(ratings2[ratings2['user_id'] == 'id'].loc[ratings2['recipe_id'].idxmax()])
-    return recipes_ids
+class Ingredient:
+    def __init__(self, name, quantity):
+        self.name = name
+        if quantity == '':
+            self.quantity = '∅'
+        else:
+            self.quantity = quantity
+
+    def __eq__(self, o: object) -> bool:
+        return self.name == o.name
+
+    def __str__(self) -> str:
+        return f"{self.quantity} {self.name}"
 
 
-def item_based_classification_filtering(recipe_id):
-    return find_similar_recipes(recipe_id, 10, 'cosine', True)
+class Recipe:
+    def __init__(self, name, recipe_id, ingredients, servings, time):
+        self.name = name
+        self.recipe_id = recipe_id
+        self.ingredients = ingredients
+        self.servings = servings
+        self.time = time
+
+    def __init__(self, recipe_id):
+        self.recipe_id = recipe_id
+        self.name = self.get_name()
+        self.ingredients = self.get_ingredients()
+        self.servings = self.get_servings()
+        self.time = self.get_time()
+
+    def __str__(self):
+        string = f"{str(self.recipe_id)} : {self.name}\nServings : {self.servings}\nTime :{self.time}\n"
+        for i in self.ingredients:
+            string += i.__str__()
+        return string
+
+    def get_ingredients(self):
+        """
+        The get_ingredients function takes a recipe id as an argument and uses web scrapping to return
+        the ingredients and quantities for that recipe.
 
 
-def get_ingredients(recipe_id):
-    """
-    The get_ingredients function takes a recipe id as an argument and uses web scrapping to return
-    the ingredients and quantities for that recipe.
-    
-    
-    :param recipe_id: Get the recipe id from the url
-    :return: A dictionary of ingredients and their quantities
-    """
-    URL = "https://www.food.com/recipe/" + recipe_id
-    page = requests.get(URL)
+        :param recipe_id: Get the recipe id from the url
+        :return: A dictionary of ingredients and their quantities
+        """
+        URL = "https://www.food.com/recipe/" + str(self.recipe_id)
+        page = requests.get(URL)
 
-    soup = BeautifulSoup(page.content, "html.parser")
-    mydivs = soup.select_one('.ingredients.svelte-1avdnba')
+        soup = BeautifulSoup(page.content, "html.parser")
+        mydivs = soup.select_one('.ingredients.svelte-1avdnba')
 
-    ingredients_dic = {}
-    for ingredient in mydivs.find_all('li'):
-        ingredient_name = ingredient.find('span', class_='ingredient__text').text
-        ingredient_amount = ingredient.find('span', class_='ingredient__quantity').text
-        ingredients_dic[ingredient_name] = ingredient_amount
-    return ingredients_dic
+        ingTab = []
+
+        for ingredient in mydivs.find_all('li'):
+            if ingredient.find('span', class_='ingredient__text'):
+                ing = Ingredient(ingredient.find('span', class_='ingredient__text').text,
+                                 ingredient.find('span', class_='ingredient__quantity').text)
+                ingTab.append(ing)
+        return ingTab
+
+    def get_servings(self):
+        URL = "https://www.food.com/recipe/" + str(self.recipe_id)
+        page = requests.get(URL)
+
+        soup = BeautifulSoup(page.content, "html.parser")
+        output = soup.select_one('button.facts__value.facts__control.theme-color.svelte-1avdnba').text
+
+        if "-" in output:
+            num = []
+            for letter in output:
+                if letter.isdigit():
+                    num.append(int(letter))
+            print(num)
+            return num
+        else:
+            return int(output)
+
+    def get_time(self):
+        URL = "https://www.food.com/recipe/" + str(self.recipe_id)
+        page = requests.get(URL)
+
+        soup = BeautifulSoup(page.content, "html.parser")
+        return soup.select_one('dd.facts__value.facts__value--light.svelte-1avdnba').text
+
+    def get_name(self):
+        URL = "https://www.food.com/recipe/" + str(self.recipe_id)
+        page = requests.get(URL)
+
+        soup = BeautifulSoup(page.content, "html.parser")
+        return soup.select_one('h1.title').text
 
 
-def find_a_recipe(ratings, minimal_grade, user_id):
-    sub_ratings = ratings[ratings['user_id'] == user_id].copy()
-    return sub_ratings.query(f"rating > {minimal_grade}").sample(n=1)['recipe_id']
-
-
-def main(classification_type, user_id, precision_user=50, precision_recipe=50, minimal_grade=4.0):
-    """
-    The main function takes a classification type, a user id and a recipe id as arguments. 
-    It then calls the appropriate function to return the list of recipes that are most popular among the neighbours.
-    
-    :param classification_type: Specify the type of classification to be used
-    :param user_id: Specify the user for which we want to find similar users
-    :param recipe_id: Specify the recipe for which we want to find similar recipes
-    :return: The list of recipes that are the most popular among the neighbours
-    """
-
-    ratings = create_ratings_df(precision_user, precision_recipe)
-
-    recipe_id = find_a_recipe(ratings, minimal_grade, user_id)
-
-    if classification_type == 'user':
-        return user_based_classification_filtering(user_id, ratings)
-    elif classification_type == 'recipe':
-        return item_based_classification_filtering(recipe_id)
-    else:
-        return "Invalid classification type"
-
-
-print(main('user', 1533))
+ratings = create_ratings_df(50, 50)
+# X, user_mapper, recipe_mapper, user_inv_mapper, recipe_inv_mapper = create_matrix(ratings)
+# Exemples d'id recette à tester :
+# [486496, 495275, 474987, 495271, 16512, 16859, 105594, 121799, 14111, 33387]
+recipe_id = 486496
+similar_ids = find_similar_recipes(recipe_id, ratings, k=10)
+recipe = Recipe(recipe_id)
+print(f"Similar recipes to {recipe.name} are: ")
+for id in similar_ids:
+    print(id)
+    print(Recipe(id).name)
