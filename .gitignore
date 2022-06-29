@@ -1,5 +1,6 @@
-*.code-workspace
+# Datas too large for GitHub to handle, we'll store it locally
 src/recipesDB/*
+
 # Default ignored files
 /shelf/
 /workspace.xml
@@ -9,3 +10,6 @@ src/recipesDB/*
 /dataSources/
 /dataSources.local.xml
 .idea
+
+# VSCode configuration
+*.code-workspace
