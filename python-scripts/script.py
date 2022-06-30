@@ -4,7 +4,7 @@ import numpy as np
 from sklearn.neighbors import NearestNeighbors
 import requests
 from bs4 import BeautifulSoup
-import random
+import json
 
 
 def create_ratings_df(n_vote_user, n_vote_recipe):
@@ -129,27 +129,41 @@ class Ingredient:
         else:
             self.quantity = quantity
 
-    def __eq__(self, o: object) -> bool:
+    def __eq__(self, o: object):
         return self.name == o.name
 
-    def __str__(self) -> str:
+    def __str__(self):
         return f"{self.quantity} {self.name}"
+
+    def __dict__(self):
+        return {"quantity": str(self.quantity), "name": self.name}
 
 
 class Recipe:
-    def __init__(self, name, recipe_id, ingredients, servings, time):
+    def __init__(self, name, recipe_id, ingredients, servings, time, image, steps):
         self.name = name
         self.recipe_id = recipe_id
         self.ingredients = ingredients
         self.servings = servings
         self.time = time
+        self.image = image
+        self.steps = steps
 
     def __init__(self, recipe_id):
         self.recipe_id = recipe_id
-        self.name = self.get_name()
-        self.ingredients = self.get_ingredients()
-        self.servings = self.get_servings()
-        self.time = self.get_time()
+
+        # Web scrapping
+
+        URL = "https://www.food.com/recipe/" + str(self.recipe_id)
+        page = requests.get(URL)
+        soup = BeautifulSoup(page.content, "html.parser")
+
+        self.name = self.get_name(soup)
+        self.ingredients = self.get_ingredients(soup)
+        self.servings = self.get_servings(soup)
+        self.time = self.get_time(soup)
+        self.image = self.get_image(soup)
+        self.steps = self.get_steps(soup)
 
     def __str__(self):
         string = f"{str(self.recipe_id)} : {self.name}\nServings : {self.servings}\nTime :{self.time}\n"
@@ -157,25 +171,19 @@ class Recipe:
             string += i.__str__()
         return string
 
-    def to_json(self):
-        return {"recipe_id": self.recipe_id, "name": self.name, "servings": self.servings, "time": self.time,
-                "ingredients": self.ingredients}
+    def __dict__(self):
+        return {"recipe_id": str(self.recipe_id), "name": self.name, "servings": str(self.servings), "time": self.time,
+                "ingredients": [ing.__dict__() for ing in self.ingredients], "image": self.image, "steps": self.steps}
 
-    def get_ingredients(self):
+    def get_ingredients(self, soup):
         """
-        The get_ingredients function takes in a recipe id and returns the ingredients for that recipe.
-        The function first gets the URL of the recipe using get_url() and then uses BeautifulSoup to 
-        parse through it. It finds all of the ingredient tags, which are stored as lists, and iterates 
-        through
+        The get_ingredients function takes in a recipe_id and returns the list of ingredients for the given recipe by scrapping the informations on Food.com.
+        If there is no serving size listed, it will return None.
 
-        :param self: Reference the object that is calling the method
-        :return: A list of ingredient objects
+        :param self: Access variables that belongs to the class
+        :param soup: The BeautifulSoup parameter used to parse the html
+        :return: The number of servings for the recipe
         """
-
-        URL = "https://www.food.com/recipe/" + str(self.recipe_id)
-        page = requests.get(URL)
-
-        soup = BeautifulSoup(page.content, "html.parser")
         mydivs = soup.select_one('.ingredients.svelte-1avdnba')
 
         ingTab = []
@@ -187,18 +195,25 @@ class Recipe:
                 ingTab.append(ing)
         return ingTab
 
-    def get_servings(self):
+    def get_steps(self, soup):
+        mydivs = soup.select_one('.directions.svelte-1avdnba')
+
+        stepsTab = []
+
+        for li in mydivs.find_all('li'):
+            stepsTab.append(li.text)
+        return stepsTab
+
+    def get_servings(self, soup):
         """
         The get_servings function takes in a recipe_id and returns the number of servings that the recipe makes.
         If there is no serving size listed, it will return None.
-        
+
         :param self: Access variables that belongs to the class
+        :param soup: The BeautifulSoup parameter used to parse the html
         :return: The number of servings for the recipe
         """
-        URL = "https://www.food.com/recipe/" + str(self.recipe_id)
-        page = requests.get(URL)
 
-        soup = BeautifulSoup(page.content, "html.parser")
         output = soup.select_one('button.facts__value.facts__control.theme-color.svelte-1avdnba').text
 
         if "-" in output:
@@ -207,59 +222,59 @@ class Recipe:
                 if letter.isdigit():
                     num.append(int(letter))
             return int((num[0] + num[1]) / 2)
+        if not output.isnumeric():
+            return int([int(s) for s in output.split() if s.isdigit()][0])
         else:
             return int(output)
 
-    def get_time(self):
+    def get_time(self, soup):
         """
         The get_time function scrapes the time it takes to make a recipe from food.com
-            Input: 
-                URL (string): The URL of the recipe being scraped
-            Output: 
-                total_time (string): The total amount of time it takes to make the recipe, in minutes
         
         :param self: Access variables that belongs to the class
+        :param soup: The BeautifulSoup parameter used to parse the html
         :return: The total time it takes to make a recipe
         """
-        URL = "https://www.food.com/recipe/" + str(self.recipe_id)
-        page = requests.get(URL)
-
-        soup = BeautifulSoup(page.content, "html.parser")
         return soup.select_one('dd.facts__value.facts__value--light.svelte-1avdnba').text
 
-    def get_name(self):
+    def get_name(self, soup):
         """
         The get_name function returns the name of a recipe given its Food.com ID number.
         
         :param self: Tell the function to refer to the object that called it
+        :param soup: The BeautifulSoup parameter used to parse the html
         :return: The name of the recipe
         """
-        URL = "https://www.food.com/recipe/" + str(self.recipe_id)
-        page = requests.get(URL)
-
-        soup = BeautifulSoup(page.content, "html.parser")
         return soup.select_one('h1.title').text
 
+    def get_image(self, soup):
+        imgs = [i.get('srcset') for i in soup.find_all('img', srcset=True)]
+        return imgs[0].split(' ')[0]
 
-def find_recipe(user_id):
-    df = pd.read_csv("../src/recipesDB/RAW_interactions.csv")
-    liked_recipes = df[df['user_id'] == user_id & df['rating'] >= 3.5]
-    if liked_recipes:
-        return random.choice(liked_recipes['recipe_id'])
-    else:
-        # 486496 is the default ID for people that hasn't enough liked recipes
-        return 486496
+
+def get_liked_recipes(user_id, df):
+    liked_recipes = df[(df['user_id'] == user_id) & (df['rating'] >= 3.5)]['recipe_id']
+    i = 5 if len(liked_recipes) > 5 else len(liked_recipes)
+    id_tab = pd.Series(liked_recipes.sample(n=i, random_state=1)).array
+    return id_tab
 
 
 def main_function(user_id):
     ratings = create_ratings_df(50, 50)
-    # X, user_mapper, recipe_mapper, user_inv_mapper, recipe_inv_mapper = create_matrix(ratings)
-    # Exemples d'id recette à tester :
-    # [486496, 495275, 474987, 495271, 16512, 16859, 105594, 121799, 14111, 33387]
-    recipe_id = find_recipe(user_id)
-    similar_ids = find_similar_recipes(recipe_id, ratings, k=10)
+    similar_ids = []
+    for id in get_liked_recipes(user_id, ratings):
+        similar_ids.extend(find_similar_recipes(id, ratings, k=10))
     recipe_tab = []
-    for id in similar_ids:
-        recipe = Recipe(recipe_id)
-        recipe_tab.append(recipe)
-    return recipe.to_json()
+    for recipe_ids in similar_ids:
+        recipe = Recipe(recipe_ids)
+        recipe_tab.append(recipe.__dict__())
+    return recipe_tab
+
+
+
+"""user_id = 1533
+tab = main_function(user_id)
+with open('new_file.json', 'w') as f:
+    json.dump(tab, f, indent=4)
+    print('new json ok')"""
+
