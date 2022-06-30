@@ -1,5 +1,5 @@
 # MealMate
-## __Find your meal !__
+## _Find your meal !_
 
 [image]
 
