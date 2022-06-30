@@ -4,6 +4,7 @@ import numpy as np
 from sklearn.neighbors import NearestNeighbors
 import requests
 from bs4 import BeautifulSoup
+import random
 
 
 def create_ratings_df(n_vote_user, n_vote_recipe):
@@ -156,6 +157,9 @@ class Recipe:
             string += i.__str__()
         return string
 
+    def to_json(self):
+        return {"recipe_id": self.recipe_id, "name": self.name, "servings": self.servings, "time": self.time, "ingredients": self.ingredients}
+
     def get_ingredients(self):
         """
         The get_ingredients function takes in a recipe id and returns the ingredients for that recipe.
@@ -201,8 +205,7 @@ class Recipe:
             for letter in output:
                 if letter.isdigit():
                     num.append(int(letter))
-            print(num)
-            return num
+            return int((num[0]+num[1])/2)
         else:
             return int(output)
 
@@ -237,14 +240,25 @@ class Recipe:
         return soup.select_one('h1.title').text
 
 
-ratings = create_ratings_df(50, 50)
-# X, user_mapper, recipe_mapper, user_inv_mapper, recipe_inv_mapper = create_matrix(ratings)
-# Exemples d'id recette à tester :
-# [486496, 495275, 474987, 495271, 16512, 16859, 105594, 121799, 14111, 33387]
-recipe_id = 486496
-similar_ids = find_similar_recipes(recipe_id, ratings, k=10)
-recipe = Recipe(recipe_id)
-print(recipe)
-print(f"Similar recipes to {recipe.name} are: ")
-for id in similar_ids:
-    print(Recipe(id).name)
+def find_recipe(user_id):
+    df = pd.read_csv("../src/recipesDB/RAW_interactions.csv")
+    liked_recipes = df[df['user_id'] == user_id & df['rating'] >= 3.5]
+    if liked_recipes:
+        return random.choice(liked_recipes['recipe_id'])
+    else:
+        # 486496 is the default ID for people that hasn't enough liked recipes
+        return 486496
+
+
+def main_function(user_id):
+    ratings = create_ratings_df(50, 50)
+    # X, user_mapper, recipe_mapper, user_inv_mapper, recipe_inv_mapper = create_matrix(ratings)
+    # Exemples d'id recette à tester :
+    # [486496, 495275, 474987, 495271, 16512, 16859, 105594, 121799, 14111, 33387]
+    recipe_id = find_recipe(user_id)
+    similar_ids = find_similar_recipes(recipe_id, ratings, k=10)
+    recipe_tab = []
+    for id in similar_ids:
+        recipe = Recipe(recipe_id)
+        recipe_tab.append(recipe)
+    return recipe.to_json()
