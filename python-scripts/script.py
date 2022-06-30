@@ -158,7 +158,8 @@ class Recipe:
         return string
 
     def to_json(self):
-        return {"recipe_id": self.recipe_id, "name": self.name, "servings": self.servings, "time": self.time, "ingredients": self.ingredients}
+        return {"recipe_id": self.recipe_id, "name": self.name, "servings": self.servings, "time": self.time,
+                "ingredients": self.ingredients}
 
     def get_ingredients(self):
         """
@@ -205,7 +206,7 @@ class Recipe:
             for letter in output:
                 if letter.isdigit():
                     num.append(int(letter))
-            return int((num[0]+num[1])/2)
+            return int((num[0] + num[1]) / 2)
         else:
             return int(output)
 
