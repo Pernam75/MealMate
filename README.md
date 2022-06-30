@@ -17,3 +17,5 @@ MealMate is a cooking recipe recommendation application based on the KNN algorit
 
 ## License
 Efrei Paris
+
+<a href="https://www.efrei.fr/"><img alt="Efrei Logo" src="https://github.com/Pernam75/MealMate/blob/main/src/EfreiLogo.png" width="179" height="58"></a>
