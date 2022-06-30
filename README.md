@@ -1,7 +1,7 @@
 # MealMate
 ## _Find your meal !_
 
-[image]
+![Meal Mate logo](https://github.com/Pernam75/MealMate/blob/main/src/MealMateLogo.jpg?raw=true)
 
 MealMate is a cooking recipe recommendation application based on the KNN algorithm. It uses machine learning to find recipes you may like by learning with the [Kaggle's database](https://www.kaggle.com/datasets/shuyangli94/food-com-recipes-and-user-interactions)
 
