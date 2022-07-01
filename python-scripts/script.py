@@ -140,6 +140,8 @@ class Ingredient:
 
 
 class Recipe:
+    DF = pd.read_csv("../src/recipesDB/RAW_recipes.csv")
+
     def __init__(self, name, recipe_id, ingredients, servings, time, image, steps, nutrition, tags):
         self.name = name
         self.recipe_id = recipe_id
@@ -251,32 +253,31 @@ class Recipe:
         return imgs[0].split(' ')[0]
 
     def get_nutrition(self):
-        df1 = pd.read_csv("../src/recipesDB/RAW_recipes.csv")
-        df1[['calories', 'total fat (PDV)', 'sugar (PDV)', 'sodium (PDV)', 'protein (PDV)', 'saturated fat (PDV)',
-             'carbohydrates (PDV)']] = df1.nutrition.str.split(",", expand=True)
-        df1['calories'] = df1['calories'].apply(lambda x: x.replace('[', ''))
-        df1['carbohydrates (PDV)'] = df1['carbohydrates (PDV)'].apply(lambda x: x.replace(']', ''))
-        df1[['calories', 'total fat (PDV)', 'sugar (PDV)', 'sodium (PDV)', 'protein (PDV)', 'saturated fat (PDV)',
-             'carbohydrates (PDV)']] = df1[
+        df = Recipe.DF.copy()
+        df[['calories', 'total fat (PDV)', 'sugar (PDV)', 'sodium (PDV)', 'protein (PDV)', 'saturated fat (PDV)',
+             'carbohydrates (PDV)']] = df.nutrition.str.split(",", expand=True)
+        df['calories'] = df['calories'].apply(lambda x: x.replace('[', ''))
+        df['carbohydrates (PDV)'] = df['carbohydrates (PDV)'].apply(lambda x: x.replace(']', ''))
+        df[['calories', 'total fat (PDV)', 'sugar (PDV)', 'sodium (PDV)', 'protein (PDV)', 'saturated fat (PDV)',
+             'carbohydrates (PDV)']] = df[
             ['calories', 'total fat (PDV)', 'sugar (PDV)', 'sodium (PDV)', 'protein (PDV)', 'saturated fat (PDV)',
              'carbohydrates (PDV)']].astype('float')
-        df1 = df1[df1['id'] == self.recipe_id][['calories', 'total fat (PDV)', 'sugar (PDV)', 'sodium (PDV)', 'protein (PDV)', 'saturated fat (PDV)',
+        df = df[df['id'] == self.recipe_id][
+            ['calories', 'total fat (PDV)', 'sugar (PDV)', 'sodium (PDV)', 'protein (PDV)', 'saturated fat (PDV)',
              'carbohydrates (PDV)']]
-        nutritionTab = []
-        for index, row in df1.iterrows():
-            dict = {"calories": row["calories"], "total fat": row["total fat (PDV)"], "sugar": row["sugar (PDV)"], "sodium": row["sodium (PDV)"], "protein": row["protein (PDV)"],
+        for index, row in df.iterrows():
+            dict = {"calories": row["calories"], "total fat": row["total fat (PDV)"], "sugar": row["sugar (PDV)"],
+                    "sodium": row["sodium (PDV)"], "protein": row["protein (PDV)"],
                     "saturated fat": row["saturated fat (PDV)"], "carbohydrates": row["carbohydrates (PDV)"]}
         return dict
 
     def get_tags(self):
-        df1 = pd.read_csv("../src/recipesDB/RAW_recipes.csv")
-        df1 = df1[df1['id'] == self.recipe_id]['tags']
-        tagsString = str(df1.values)
+        df = Recipe.DF.copy()
+        df = df[df['id'] == self.recipe_id]['tags']
+        tagsString = str(df.values)
         tagsString = tagsString.translate({ord(i): None for i in '["\' ]'})
         tagsTab = tagsString.split(',')
         return tagsTab
-
-
 
 
 def get_liked_recipes(user_id, df):
@@ -295,6 +296,7 @@ def main_function(user_id):
     for recipe_ids in similar_ids:
         recipe = Recipe(recipe_ids)
         recipe_tab.append(recipe.__dict__())
+        print(f"ok {recipe.recipe_id}")
     return recipe_tab
 
 
@@ -304,4 +306,3 @@ tab = main_function(user_id)
 with open('new_file.json', 'w') as f:
     json.dump(tab, f, indent=4)
     print('new json ok')
-
