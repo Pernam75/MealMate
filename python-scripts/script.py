@@ -286,17 +286,18 @@ def main_function(user_id):
     similar_ids = []
     for id in get_liked_recipes(user_id, ratings):
         similar_ids.extend(find_similar_recipes(id, ratings, k=10))
-    recipe_tab = []
+    return similar_ids
+    """recipe_tab = []
     for recipe_ids in similar_ids:
         response = requests.get('http://www.food.com/recipe/' + str(recipe_ids))
         if response.status_code == 200:
             print('Web site exists')
-            recipe = Recipe(recipe_ids)
+            soup = BeautifulSoup(response.text, 'html.parser')
+            recipe = Recipe(recipe_ids, soup)
             recipe_tab.append(recipe.__dict__())
-    return recipe_tab
+    return recipe_tab"""
 
-
-id = 137739
+"""id = 137739
 recipe1 = SmallRecipe(id)
 page = requests.get('http://www.food.com/recipe/' + str(id))
 if page.status_code == 200:
@@ -308,11 +309,11 @@ if page.status_code == 200:
 print(recipe1.__dict__())
 print(recipe2.__dict__())
 print(recipe3.__dict__())
-print(recipe3.servings)
+print(recipe3.servings)"""
 
 """user_id = 1533
-#tab = main_function(user_id)
-tab = get_all_names()
+tab = main_function(user_id)
+#tab = get_all_names()
 with open('all_recipes.json', 'w') as f:
     json.dump(tab, f, indent=4)
     print('new json ok')"""
