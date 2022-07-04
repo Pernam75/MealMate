@@ -12,7 +12,7 @@ def create_ratings_df(n_vote_user, n_vote_recipe):
     The create_ratings_df function creates a dataframe of the ratings from the RAW_interactions.csv file, 
     where each row is a user-recipe pair and contains their rating for that recipe. The function also filters out 
     any users who have rated less than n_vote_user recipes and any recipes that have been rated
-    
+
     :param n_vote_user: Filter the users that have voted at least n times
     :param n_vote_recipe: Filter the recipes that have been rated at least n times
     :return: A dataframe with the ratings of each user
@@ -38,8 +38,8 @@ def create_matrix(df):
     It maps user_id and recipe_id to indices, which are used as coordinates in the
     sparse matrix. The function also creates dictionaries that map IDs to indices
     and vice versa.
-    
-    
+
+
     :param df: Create the matrix
     :return: A sparse matrix of the ratings dataframe
     """
@@ -139,42 +139,84 @@ class Ingredient:
         return {"quantity": str(self.quantity), "name": self.name}
 
 
-class Recipe:
+class SmallRecipe:
     DF = pd.read_csv("../src/recipesDB/RAW_recipes.csv")
-
-    def __init__(self, name, recipe_id, ingredients, servings, time, image, steps, nutrition, tags):
-        self.name = name
-        self.recipe_id = recipe_id
-        self.ingredients = ingredients
-        self.servings = servings
-        self.time = time
-        self.image = image
-        self.steps = steps
-        self.nutrition = nutrition
-        self.tags = tags
 
     def __init__(self, recipe_id):
         self.recipe_id = recipe_id
-
-        # Web scrapping
-
-        URL = "https://www.food.com/recipe/" + str(self.recipe_id)
-        page = requests.get(URL)
-        soup = BeautifulSoup(page.content, "html.parser")
-
-        self.name = self.get_name(soup)
-        self.ingredients = self.get_ingredients(soup)
-        self.servings = self.get_servings(soup)
-        self.time = self.get_time(soup)
-        self.image = self.get_image(soup)
-        self.steps = self.get_steps(soup)
-        self.nutrition = self.get_nutrition()
-        self.tags = self.get_tags()
+        self.name = self.DF[self.DF['id'] == self.recipe_id]['name'].values[0]
 
     def __dict__(self):
-        return {"recipe_id": str(self.recipe_id), "name": self.name, "servings": str(self.servings), "time": self.time,
-                "ingredients": [ing.__dict__() for ing in self.ingredients], "image": self.image, "steps": self.steps,
+        return {"recipe_id": self.recipe_id, "name": self.name}
+
+
+class MediumRecipe(SmallRecipe):
+
+    def __init__(self, recipe_id, soup):
+        super().__init__(recipe_id)
+        self.image = self.get_image(soup)
+        self.tags = self.get_tags()
+        self.time = self.get_time(soup)
+        self.nutrition = self.get_nutrition()
+
+    def __dict__(self):
+        return {"recipe_id": self.recipe_id, "name": self.name, "time": self.time, "image": self.image,
                 "nutrition": self.nutrition, "tags": self.tags}
+
+    def get_time(self, soup):
+        """
+        The get_time function scrapes the time it takes to make a recipe from food.com
+
+        :param self: Access variables that belongs to the class
+        :param soup: The BeautifulSoup parameter used to parse the html
+        :return: The total time it takes to make a recipe
+        """
+        return soup.select_one('dd.facts__value.facts__value--light.svelte-1avdnba').text
+
+    def get_image(self, soup):
+        imgs = [i.get('srcset') for i in soup.find_all('img', srcset=True)]
+        return imgs[0].split(' ')[0]
+
+    def get_nutrition(self):
+        df = Recipe.DF.copy()
+        df[['calories', 'total fat (PDV)', 'sugar (PDV)', 'sodium (PDV)', 'protein (PDV)', 'saturated fat (PDV)',
+            'carbohydrates (PDV)']] = df.nutrition.str.split(",", expand=True)
+        df['calories'] = df['calories'].apply(lambda x: x.replace('[', ''))
+        df['carbohydrates (PDV)'] = df['carbohydrates (PDV)'].apply(lambda x: x.replace(']', ''))
+        df[['calories', 'total fat (PDV)', 'sugar (PDV)', 'sodium (PDV)', 'protein (PDV)', 'saturated fat (PDV)',
+            'carbohydrates (PDV)']] = df[
+            ['calories', 'total fat (PDV)', 'sugar (PDV)', 'sodium (PDV)', 'protein (PDV)', 'saturated fat (PDV)',
+             'carbohydrates (PDV)']].astype('float')
+        df = df[df['id'] == self.recipe_id][
+            ['calories', 'total fat (PDV)', 'sugar (PDV)', 'sodium (PDV)', 'protein (PDV)', 'saturated fat (PDV)',
+             'carbohydrates (PDV)']]
+        for index, row in df.iterrows():
+            dict = {"calories": row["calories"], "total fat": row["total fat (PDV)"], "sugar": row["sugar (PDV)"],
+                    "sodium": row["sodium (PDV)"], "protein": row["protein (PDV)"],
+                    "saturated fat": row["saturated fat (PDV)"], "carbohydrates": row["carbohydrates (PDV)"]}
+        return dict
+
+    def get_tags(self):
+        df = Recipe.DF.copy()
+        df = df[df['id'] == self.recipe_id]['tags']
+        tagsString = str(df.values)
+        tagsString = tagsString.translate({ord(i): None for i in '["\' ]'})
+        tagsTab = tagsString.split(',')
+        return tagsTab
+
+
+class Recipe(MediumRecipe):
+    def __init__(self, recipe_id, soup):
+        super().__init__(recipe_id, soup)
+        self.ingredients = self.get_ingredients(soup)
+        self.servings = self.get_servings(soup)
+        self.steps = self.get_steps(soup)
+
+    def __dict__(self):
+        return {"recipe_id": self.recipe_id, "name": self.name, "time": self.time, "image": self.image,
+                "nutrition": self.nutrition, "tags": self.tags,
+                "servings": self.servings, "ingredients": [ing.__dict__() for ing in self.ingredients],
+                "steps": self.steps}
 
     def get_ingredients(self, soup):
         """
@@ -216,68 +258,20 @@ class Recipe:
         """
 
         output = soup.select_one('button.facts__value.facts__control.theme-color.svelte-1avdnba').text
-
-        if "-" in output:
-            num = []
-            for letter in output:
-                if letter.isdigit():
-                    num.append(int(letter))
-            return int((num[0] + num[1]) / 2)
         if not output.isnumeric():
+            if "-" in output:
+                num = []
+                for letter in output:
+                    if letter.isdigit():
+                        num.append(int(letter))
+
+                return float((num[0] + num[1]) / 2)
+            if "/" in output:
+                num, den = output.split('/')
+                return "{:.2f}".format(float(num) / float(den))
             return int([int(s) for s in output.split() if s.isdigit()][0])
         else:
             return int(output)
-
-    def get_time(self, soup):
-        """
-        The get_time function scrapes the time it takes to make a recipe from food.com
-        
-        :param self: Access variables that belongs to the class
-        :param soup: The BeautifulSoup parameter used to parse the html
-        :return: The total time it takes to make a recipe
-        """
-        return soup.select_one('dd.facts__value.facts__value--light.svelte-1avdnba').text
-
-    def get_name(self, soup):
-        """
-        The get_name function returns the name of a recipe given its Food.com ID number.
-        
-        :param self: Tell the function to refer to the object that called it
-        :param soup: The BeautifulSoup parameter used to parse the html
-        :return: The name of the recipe
-        """
-        return soup.select_one('h1.title').text
-
-    def get_image(self, soup):
-        imgs = [i.get('srcset') for i in soup.find_all('img', srcset=True)]
-        return imgs[0].split(' ')[0]
-
-    def get_nutrition(self):
-        df = Recipe.DF.copy()
-        df[['calories', 'total fat (PDV)', 'sugar (PDV)', 'sodium (PDV)', 'protein (PDV)', 'saturated fat (PDV)',
-             'carbohydrates (PDV)']] = df.nutrition.str.split(",", expand=True)
-        df['calories'] = df['calories'].apply(lambda x: x.replace('[', ''))
-        df['carbohydrates (PDV)'] = df['carbohydrates (PDV)'].apply(lambda x: x.replace(']', ''))
-        df[['calories', 'total fat (PDV)', 'sugar (PDV)', 'sodium (PDV)', 'protein (PDV)', 'saturated fat (PDV)',
-             'carbohydrates (PDV)']] = df[
-            ['calories', 'total fat (PDV)', 'sugar (PDV)', 'sodium (PDV)', 'protein (PDV)', 'saturated fat (PDV)',
-             'carbohydrates (PDV)']].astype('float')
-        df = df[df['id'] == self.recipe_id][
-            ['calories', 'total fat (PDV)', 'sugar (PDV)', 'sodium (PDV)', 'protein (PDV)', 'saturated fat (PDV)',
-             'carbohydrates (PDV)']]
-        for index, row in df.iterrows():
-            dict = {"calories": row["calories"], "total fat": row["total fat (PDV)"], "sugar": row["sugar (PDV)"],
-                    "sodium": row["sodium (PDV)"], "protein": row["protein (PDV)"],
-                    "saturated fat": row["saturated fat (PDV)"], "carbohydrates": row["carbohydrates (PDV)"]}
-        return dict
-
-    def get_tags(self):
-        df = Recipe.DF.copy()
-        df = df[df['id'] == self.recipe_id]['tags']
-        tagsString = str(df.values)
-        tagsString = tagsString.translate({ord(i): None for i in '["\' ]'})
-        tagsTab = tagsString.split(',')
-        return tagsTab
 
 
 def get_liked_recipes(user_id, df):
@@ -294,15 +288,33 @@ def main_function(user_id):
         similar_ids.extend(find_similar_recipes(id, ratings, k=10))
     recipe_tab = []
     for recipe_ids in similar_ids:
-        recipe = Recipe(recipe_ids)
-        recipe_tab.append(recipe.__dict__())
-        print(f"ok {recipe.recipe_id}")
+        response = requests.get('http://www.food.com/recipe/' + str(recipe_ids))
+        if response.status_code == 200:
+            print('Web site exists')
+            recipe = Recipe(recipe_ids)
+            recipe_tab.append(recipe.__dict__())
     return recipe_tab
 
 
+id = 137739
+recipe1 = SmallRecipe(id)
+page = requests.get('http://www.food.com/recipe/' + str(id))
+if page.status_code == 200:
+    print('Web site exists')
+    soup = BeautifulSoup(page.content, "html.parser")
+    recipe2 = MediumRecipe(id, soup)
+    recipe3 = Recipe(id, soup)
 
-user_id = 1533
-tab = main_function(user_id)
-with open('new_file.json', 'w') as f:
+print(recipe1.__dict__())
+print(recipe2.__dict__())
+print(recipe3.__dict__())
+print(recipe3.servings)
+
+"""user_id = 1533
+#tab = main_function(user_id)
+tab = get_all_names()
+with open('all_recipes.json', 'w') as f:
     json.dump(tab, f, indent=4)
-    print('new json ok')
+    print('new json ok')"""
+# ouverture du tableau de note des utilisateurs
+# besoin du fichier "RAW_interactions.csv"
