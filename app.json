@@ -1,0 +1,11 @@
+{
+  "expo": {
+    "name": "meal-mate",
+    "slug": "meal-mate",
+    "owner": "senshi_ben",
+    "version": "1.0.0",
+    "assetBundlePatterns": [
+      "**/*"
+    ]
+  }
+}
