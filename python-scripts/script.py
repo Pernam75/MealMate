@@ -143,7 +143,7 @@ class SmallRecipe:
     DF = pd.read_csv("../src/recipesDB/RAW_recipes.csv")
 
     def __init__(self, recipe_id):
-        self.recipe_id = recipe_id
+        self.recipe_id = int(recipe_id)
         self.name = self.DF[self.DF['id'] == self.recipe_id]['name'].values[0]
 
     def __dict__(self):
@@ -171,7 +171,13 @@ class MediumRecipe(SmallRecipe):
         :param soup: The BeautifulSoup parameter used to parse the html
         :return: The total time it takes to make a recipe
         """
-        return soup.select_one('dd.facts__value.facts__value--light.svelte-1avdnba').text
+
+        output = ""
+        try:
+            output += soup.select_one('dd.facts__value.facts__value--light.svelte-1avdnba').text
+        except AttributeError as e:
+            print(e)
+        return output
 
     def get_image(self, soup):
         imgs = [i.get('srcset') for i in soup.find_all('img', srcset=True)]
@@ -254,9 +260,13 @@ class Recipe(MediumRecipe):
         :param soup: The BeautifulSoup parameter used to parse the html
         :return: The number of servings for the recipe
         """
-
-        output = soup.select_one('button.facts__value.facts__control.theme-color.svelte-1avdnba').text
-        if not output.isnumeric():
+        output = ""
+        try:
+            output += soup.select_one('button.facts__value.facts__control.theme-color.svelte-1avdnba').text
+        except AttributeError as e:
+            print(e)
+        return output
+"""        if not output.isnumeric():
             if "-" in output:
                 num = []
                 for letter in output:
@@ -269,7 +279,7 @@ class Recipe(MediumRecipe):
                 return "{:.2f}".format(float(num) / float(den))
             return int([int(s) for s in output.split() if s.isdigit()][0])
         else:
-            return int(output)
+            return int(output)"""
 
 
 def get_liked_recipes(user_id, df):
@@ -329,16 +339,21 @@ def list_unique_in_index(in_index):
     """
     return list(in_index['recipe_id'].unique())
 
+
 def get_json_recipes():
     all_recipes_ids = get_all_recipes_index_json()
     recipe_tab = []
+    i = 1
     for recipe_ids in all_recipes_ids:
+        print(f"{recipe_ids} : {i}/{len(all_recipes_ids)}")
         response = requests.get('http://www.food.com/recipe/' + str(recipe_ids))
         if response.status_code == 200:
-            print('Web site exists')
-            recipe = Recipe(recipe_ids)
+            soup = BeautifulSoup(response.content, "html.parser")
+            recipe = Recipe(recipe_ids, soup)
             recipe_tab.append(recipe.__dict__())
+        i+=1
     return recipe_tab
+
 
 tab = get_json_recipes()
 with open('all_recipes.json', 'w') as f:
@@ -362,7 +377,7 @@ print(recipe3.__dict__())
 print(recipe3.servings)
 
 user_id = 1533
-#tab = main_function(user_id)
+tab = main_function(user_id)
 tab = get_all_names()
 with open('all_recipes.json', 'w') as f:
     json.dump(tab, f, indent=4)
