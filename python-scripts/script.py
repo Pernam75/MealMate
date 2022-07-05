@@ -293,6 +293,59 @@ def main_function(user_id):
             recipe_tab.append(recipe.__dict__())
     return recipe_tab
 
+def get_all_recipes_index_json():
+    # ouverture du tableau de note des utilisateurs
+    # besoin du fichier "RAW_interactions.csv"
+
+    df = pd.read_csv("../src/recipesDB/RAW_interactions.csv")
+    grade = df[["user_id", "recipe_id", "rating"]]
+
+    # modifier le nombre de vote ici
+
+    ###########################################
+    n_vote_user = 50
+    n_vote_recipes = 50
+    ###########################################
+
+    # creation d'un dataframe permettant de choisir les utilisateurs avec plus de 50 votes
+
+    data_df = pd.DataFrame(grade['user_id'].value_counts())
+    final_data = data_df[(data_df["user_id"] > n_vote_user)]
+    index_list = final_data.index
+
+    # creation d'un dataframe permettant de choisir les recettes avec plus de 50 votes
+
+    data_df1 = pd.DataFrame(grade['recipe_id'].value_counts())
+    final_data1 = data_df1[(data_df1["recipe_id"] > n_vote_recipes)]
+    index_list1 = final_data1.index
+
+    in_index = grade[(grade["user_id"].isin(index_list) & grade["recipe_id"].isin(index_list1))]
+    return list_unique_in_index(in_index)
+
+def list_unique_in_index(in_index):
+    """
+    retourne en list les valeurs unique de la colonne recipe_id
+    """
+    return list(in_index['recipe_id'].unique())
+
+def get_json_recipes():
+    all_recipes_ids = get_all_recipes_index_json()
+    recipe_tab = []
+    for recipe_ids in all_recipes_ids:
+        response = requests.get('http://www.food.com/recipe/' + str(recipe_ids))
+        if response.status_code == 200:
+            print('Web site exists')
+            recipe = Recipe(recipe_ids)
+            recipe_tab.append(recipe.__dict__())
+    return recipe_tab
+
+tab = get_json_recipes()
+with open('all_recipes.json', 'w') as f:
+    json.dump(tab, f, indent=4)
+    print('new json ok')
+
+
+"""
 id = 137739
 recipe1 = SmallRecipe(id)
 page = requests.get('http://www.food.com/recipe/' + str(id))
@@ -307,7 +360,7 @@ print(recipe2.__dict__())
 print(recipe3.__dict__())
 print(recipe3.servings)
 
-"""user_id = 1533
+user_id = 1533
 #tab = main_function(user_id)
 tab = get_all_names()
 with open('all_recipes.json', 'w') as f:
