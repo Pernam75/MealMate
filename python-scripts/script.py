@@ -87,7 +87,7 @@ def find_similar_recipes(recipe_id, ratings, k, metric='cosine', show_distance=F
     neighbour = kNN.kneighbors(recipe_vec, return_distance=show_distance)
     for i in range(0, k):
         n = neighbour.item(i)
-        neighbour_ids.append(recipe_inv_mapper[n])
+        neighbour_ids.append(int(recipe_inv_mapper[n]))
     neighbour_ids.pop(0)
     return neighbour_ids
 
@@ -282,7 +282,8 @@ def get_liked_recipes(user_id, df):
 
 
 def main_function(user_id):
-    ratings = create_ratings_df(50, 50)
+    #ratings = create_ratings_df(50, 50)
+    ratings = pd.read_csv('../src/recipesDB/note.csv')
     similar_ids = []
     for id in get_liked_recipes(user_id, ratings):
         similar_ids.extend(find_similar_recipes(id, ratings, k=10))
