@@ -293,6 +293,7 @@ def main_function(user_id):
             recipe_tab.append(recipe.__dict__())
     return recipe_tab
 
+
 def get_all_recipes_index_json():
     # ouverture du tableau de note des utilisateurs
     # besoin du fichier "RAW_interactions.csv"
