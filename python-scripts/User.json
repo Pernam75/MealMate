@@ -1,0 +1,12 @@
+[
+    {
+        "id": "1000000",
+        "firstName": "Ayman",
+        "lastName": "Ben Hajjaj",
+        "password": "123456",
+        "email": "benhajjaj.ayman@gmail.com",
+        "avatar": "https://cdn.discordapp.com/attachments/988354598915936256/992310672597725214/avatar-personnage-dessin-anime-chef-3d-isole-dans-rendu-3d_235528-1015.png",
+        "date": "2022-07-05",
+        "likes":[]
+    }
+]
