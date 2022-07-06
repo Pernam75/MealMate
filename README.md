@@ -1,6 +1,6 @@
 <p align="center">
   <a href="" rel="noopener">
- <img src="https://github.com/Pernam75/MealMate/blob/main/src/MealMateLogo.jpg?" alt="Meal Mate logo"></a>
+ <img src="https://github.com/Pernam75/MealMate/blob/main/front-end/src/images/logo_h.jpg?" alt="Meal Mate logo"></a>
 </p>
 
 <h3 align="center">Meal Mate</h3>
