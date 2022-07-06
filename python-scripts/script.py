@@ -150,6 +150,7 @@ class SmallRecipe:
         return {"recipe_id": self.recipe_id, "name": self.name}
 
 
+
 class MediumRecipe(SmallRecipe):
 
     def __init__(self, recipe_id, soup):
@@ -164,13 +165,14 @@ class MediumRecipe(SmallRecipe):
                 "nutrition": self.nutrition, "tags": self.tags}
 
     def get_time(self, soup):
+
         """
         The get_time function scrapes the time it takes to make a recipe from food.com
-
         :param self: Access variables that belongs to the class
         :param soup: The BeautifulSoup parameter used to parse the html
         :return: The total time it takes to make a recipe
         """
+
         output = ""
         try:
             output += soup.select_one('dd.facts__value.facts__value--light.svelte-1avdnba').text
