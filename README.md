@@ -34,7 +34,7 @@
 Open the project in Visual Studio Code and run
 
 ```bash
-expo install
+npm install
 ```
 
 ```bash
