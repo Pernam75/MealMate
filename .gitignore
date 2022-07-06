@@ -11,5 +11,8 @@ src/recipesDB/*
 /dataSources.local.xml
 .idea
 
+/__pycache__
+
 # VSCode configuration
 *.code-workspace
+.vscode

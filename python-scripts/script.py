@@ -12,7 +12,7 @@ def create_ratings_df(n_vote_user, n_vote_recipe):
     The create_ratings_df function creates a dataframe of the ratings from the RAW_interactions.csv file, 
     where each row is a user-recipe pair and contains their rating for that recipe. The function also filters out 
     any users who have rated less than n_vote_user recipes and any recipes that have been rated
-    
+
     :param n_vote_user: Filter the users that have voted at least n times
     :param n_vote_recipe: Filter the recipes that have been rated at least n times
     :return: A dataframe with the ratings of each user
@@ -38,8 +38,8 @@ def create_matrix(df):
     It maps user_id and recipe_id to indices, which are used as coordinates in the
     sparse matrix. The function also creates dictionaries that map IDs to indices
     and vice versa.
-    
-    
+
+
     :param df: Create the matrix
     :return: A sparse matrix of the ratings dataframe
     """
@@ -87,7 +87,7 @@ def find_similar_recipes(recipe_id, ratings, k, metric='cosine', show_distance=F
     neighbour = kNN.kneighbors(recipe_vec, return_distance=show_distance)
     for i in range(0, k):
         n = neighbour.item(i)
-        neighbour_ids.append(recipe_inv_mapper[n])
+        neighbour_ids.append(int(recipe_inv_mapper[n]))
     neighbour_ids.pop(0)
     return neighbour_ids
 
@@ -150,6 +150,7 @@ class SmallRecipe:
         return {"recipe_id": self.recipe_id, "name": self.name}
 
 
+
 class MediumRecipe(SmallRecipe):
 
     def __init__(self, recipe_id, soup):
@@ -164,9 +165,9 @@ class MediumRecipe(SmallRecipe):
                 "nutrition": self.nutrition, "tags": self.tags}
 
     def get_time(self, soup):
+
         """
         The get_time function scrapes the time it takes to make a recipe from food.com
-
         :param self: Access variables that belongs to the class
         :param soup: The BeautifulSoup parameter used to parse the html
         :return: The total time it takes to make a recipe
@@ -219,9 +220,11 @@ class Recipe(MediumRecipe):
         self.steps = self.get_steps(soup)
 
     def __dict__(self):
-        return {"recipe_id": self.recipe_id, "name": self.name, "time": self.time, "image": self.image, "nutrition": self.nutrition, "tags": self.tags,
-                "servings": self.servings, "ingredients": [ing.__dict__() for ing in self.ingredients],  "steps": self.steps}
-
+        return {"recipe_id": self.recipe_id, "name": self.name, "time": self.time, "image": self.image,
+                "nutrition": self.nutrition, "tags": self.tags,
+                "servings": self.servings, "ingredients": [ing.__dict__() for ing in self.ingredients],
+                "steps": self.steps}
+                
     def get_ingredients(self, soup):
         """
         The get_ingredients function takes in a recipe_id and returns the list of ingredients for the given recipe by scrapping the informations on Food.com.
@@ -290,11 +293,13 @@ def get_liked_recipes(user_id, df):
 
 
 def main_function(user_id):
-    ratings = create_ratings_df(50, 50)
+    #ratings = create_ratings_df(50, 50)
+    ratings = pd.read_csv('../src/recipesDB/note.csv')
     similar_ids = []
     for id in get_liked_recipes(user_id, ratings):
         similar_ids.extend(find_similar_recipes(id, ratings, k=10))
-    recipe_tab = []
+    return similar_ids
+    """recipe_tab = []
     for recipe_ids in similar_ids:
         response = requests.get('http://www.food.com/recipe/' + str(recipe_ids))
         if response.status_code == 200:
