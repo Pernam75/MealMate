@@ -1,11 +1,11 @@
-import React, {useState, useEffect} from 'react';
-import { ScrollView, Center, View, Input, Icon, Pressable, useColorMode, Text, Flex } from 'native-base';
+import React, {useState, useEffect, useContext} from 'react';
+import { ScrollView, Center, View, Input, Icon, Pressable, useColorMode, Text, Flex, FormControl, Radio, Badge } from 'native-base';
 import { Ionicons } from "@expo/vector-icons";
 import Recipe from './Recipe';
 import SmallRecipe from './SmallRecipe';
 const Env = require('../Env/EvnVariables')
 const recipeList = require('../src/data/all_recipes.json')
-
+import { AuthContext } from '../Contexts/AuthContext';
 
 
 function Recomendations(props) {
@@ -15,21 +15,13 @@ function Recomendations(props) {
         <View my="2">
             <Text fontSize="lg" fontWeight="bold" pl="3" pb="2">Recommended for you</Text>
             <ScrollView flex="1" horizontal={true} showsHorizontalScrollIndicator={true} persistentScrollbar={true}>
-                    <Pressable onPress={() => {
-                        navigation.navigate('recipe', recipeList[5])}}
-                        key={recipeList[5].recipe_id}>
-                        <SmallRecipe item={recipeList[5]} />
-                    </Pressable>
-                    <Pressable onPress={() => {
-                        navigation.navigate('recipe', recipeList[4])}}
-                        key={recipeList[4].recipe_id}>
-                        <SmallRecipe item={recipeList[4]} />
-                    </Pressable>
-                    <Pressable onPress={() => {
-                        navigation.navigate('recipe', recipeList[6])}}
-                        key={recipeList[6].recipe_id}>
-                        <SmallRecipe item={recipeList[6]} />
-                    </Pressable>
+                {props.Recomendation.slice(0,5).map(recipe => {return (
+                <Pressable onPress={() => {
+                    navigation.navigate('recipe', recipe)}}
+                    key={recipe.recipe_id}>
+                    <Recipe updater={props.updater} item={recipe} />
+                </Pressable>
+                )})}
             </ScrollView>
         </View>
       );
@@ -47,43 +39,124 @@ export default function Recipes({navigation}) {
       toggleColorMode
     } = useColorMode();
 
-    const [recipe, setRecipe] = useState([]);
-    const [search, setSearch] = useState('');
-    const [likes, setLikes] = useState(0);
+    const {userLikes} = useContext(AuthContext)
 
-    const GetRecipes = (n = 15) => {
-        fetch(`${Env.default.ip}/recipes/${search}`)
+    const [recipe, setRecipe] = useState([]);
+    const [Recomendation, setRecomendation] = useState([]);
+    const [search, setSearch] = useState('');
+    const [tag, setTag] = useState('All');
+    const [idArray, setIdArray] = useState([]);
+
+    const [UpdateVal, setUpdateVal] = useState(0);
+
+    const tags = [
+        { value: 'All' },
+        { value: 'Breakfast' },
+        { value: 'Sweet' },
+        { value: 'Vegan' },
+        { value: 'Dessert' },
+        { value: 'Inexpensive' },
+        { value: 'Apetiser' },
+        { value: 'Dietary' },
+        { value: 'Low Calories' },
+    ];
+
+    async function fetchRecomendations () {
+        console.log(`${Env.default.ip_2}/api/machine_learning?id=1533`)
+        fetch(`${Env.default.ip_2}/api/machine_learning?id=1533`)
         .then(response => response.json())
         .then((data) => {
-            setRecipe(data.splice(25,n));
+            console.log(data.recipe_list)
+            setRecomendation(RecipesById(recipeList, data.recipe_list))
         })
         .catch((error) => console.log(error.message))
     }
 
+    async function fetchSearchResults(search) {
+        console.log(`${Env.default.ip_2}/api/recherche?search_bar=${search}`)
+        fetch(`${Env.default.ip_2}/api/recherche?search_bar=${search}`)
+        .then(response => response.json())
+        .then((data) => {
+            console.log(data.recipes)
+            setIdArray(data.recipes);
+            setRecipe(RecipesById(recipeList, data.recipes))
+        })
+        .catch((error) => console.log(error.message))
+    }
+
+    async function fetchTagResults(search) {
+        console.log(`${Env.default.ip_2}/api/recherche?search_button=${search}`)
+        fetch(`${Env.default.ip_2}/api/recherche?search_bar=${search}`)
+        .then(response => response.json())
+        .then((data) => {
+            console.log(data.recipes)
+            setIdArray(data.recipes);
+            setRecipe(RecipesById(recipeList, data.recipes))
+        })
+        .catch((error) => console.log(error.message))
+    }
+
+    const RecipesById = (recipeList, idArray) => {
+        var resultArray = []
+        for (let index = 0; index < recipeList.length; index++) {
+            if (idArray.includes(recipeList[index].recipe_id)) {
+                resultArray.push(recipeList[index])
+            }
+        }
+        return(resultArray)
+    }
+
     useEffect(() => {
-        // GetRecipes()
-        setRecipe(recipeList.splice(0,10))
-        setLikes(0)
-    },[])
+        const unsubscribe = navigation.addListener('focus', () => {
+            console.log('Refreshed Main!');
+            setRecipe(recipeList)
+            setUpdateVal(UpdateVal + 1)
+            fetchRecomendations()
+        });
+    return unsubscribe;
+    },[navigation])
+
     return (
         <View backgroundColor={colorMode === "dark" ? "black" : "coolGray.100"}>
             <Center backgroundColor={colorMode === "dark" ? "gray.900" : "white"} pt="10" pb="5" px="5">
-                <Input value={search} onChangeText={text => {setSearch(text)}} h="12"placeholderTextColor={colorMode === "dark" ? "warmGray.400" : "coolGray.400"} placeholder="What recipe are you looking for ?" variant="filled" width="100%" borderRadius="10" px="5" borderWidth="0" InputRightElement={<Icon mr="4" size="4" color={colorMode === "dark" ? "white" : "black"} as={<Ionicons name="ios-search" />} />} />
+                <Input value={search} 
+                    onSubmitEditing={
+                        (event) => {setSearch(event.nativeEvent.text)
+                            fetchSearchResults(event.nativeEvent.text.toLowerCase())
+                        }
+                    } onChangeText={
+                        text => {setSearch(text)}
+                    } h="12"placeholderTextColor={colorMode === "dark" ? "warmGray.400" : "coolGray.400"} placeholder="What recipe are you looking for ?" variant="filled" width="100%" borderRadius="10" px="5" borderWidth="0" InputRightElement={<Icon mr="4" size="4" color={colorMode === "dark" ? "white" : "black"} as={<Ionicons name="ios-search" />} />} />
             </Center>
+
             <Center h = "87%">
-                <ScrollView maxW="3000" width="100%" _contentContainerStyle={{
-                minW: "72"
-                }}>
-                    <Text>{search}</Text>
+
+                <ScrollView w="85%" alignSelf="center" py="2" horizontal={true}>
+                    <Flex flexDirection="row">
+                        {tags.map((item) => {
+                            return (
+                                <Pressable onPress={() => {
+                                    setTag(item.value)
+                                    fetchTagResults(item.value.toLowerCase())
+                                }} >
+                                    <Badge key={item.value} px="2" mx="1" variant="ghost" rounded="xl" _text={{fontSize:13, color: item.value === tag ? 'white' : colorMode === "dark" ? "white" : "black" }} backgroundColor={ item.value === tag ? '#59DBB7' : colorMode === "dark" ? "gray.900" : "white" }>{item.value}</Badge>
+                                </Pressable>
+                            )
+                        })}
+                    </Flex>
+                </ScrollView>
+
+                <ScrollView maxW="3000" width="100%" _contentContainerStyle={{ minW: "72" }}>
+
                     <View alignSelf="center" w="85%" borderColor="#59DBB7" borderRadius="15" borderWidth="5">
-                        <Recomendations likes={likes} />
+                        <Recomendations updater={setUpdateVal} likes={userLikes.length} Recomendation={Recomendation}/>
                     </View>
 
-                    {recipe.map(recipe => {return (
+                    {recipe.slice(0,10).map(recipe => {return (
                     <Pressable onPress={() => {
                         navigation.navigate('recipe', recipe)}}
                         key={recipe.recipe_id}>
-                        <Recipe item={recipe} />
+                        <Recipe updater={setUpdateVal} item={recipe} />
                     </Pressable>
                     )})}
                 </ScrollView>

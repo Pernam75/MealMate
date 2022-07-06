@@ -63,7 +63,7 @@ export default function Signin({navigation}) {
                       </Box>
                       )
                   }})
-                  login(res.data.info[0])
+                  login(res.data.info[0],res.data.likes)
                 }
               })
               .catch(error => {

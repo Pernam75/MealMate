@@ -1,29 +1,31 @@
 import { Text, View, Box, Center, Heading, IconButton, AspectRatio, Divider, Image, Icon, HStack, Badge, ZStack, ScrollView, useColorMode, Flex } from 'native-base';
 import { Octicons, MaterialCommunityIcons, Ionicons, AntDesign } from "@expo/vector-icons";
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useContext} from 'react';
 const Env = require('../Env/EvnVariables')
+import axios from 'axios';
+import { AuthContext } from '../Contexts/AuthContext'
+import { DevSettings } from 'react-native';
 
 export default function RecipeScreen({navigation, route}) {
     const {
         colorMode,
         toggleColorMode
     } = useColorMode();
+    
+    const {userLikes, userInfo, updateLikes} = useContext(AuthContext)
+    const [Likes, setLikes] = useState([]);
+
+    function sendLike(id_user, id_recipe) {
+      axios.post(`${Env.default.ip}/like`,{ id_user, id_recipe })
+      .then(res =>{
+        console.log(res.data)})
+    }
 
     const [recipeIngredient, setRecipeIngredient] = useState([]);
     const [recipeIstruction, setRecipeIstruction] = useState([]);
     const [recipeTags, setRecipeTags] = useState([]);
 
-    const GetRecipes = () => {
-        fetch(`${Env.default.ip}/prepare/${route.params.recipe_id}`)
-        .then(response => response.json())
-        .then((data) => {
-            setRecipeIngredient(data.splice(0,30));
-        })
-        .catch((error) => console.log(error.message))
-    }
-
     useEffect(() => {
-        // GetRecipes()
         setRecipeIngredient(route.params.ingredients)
         setRecipeIstruction(route.params.steps)
         setRecipeTags(route.params.tags)
@@ -57,8 +59,8 @@ export default function RecipeScreen({navigation, route}) {
                                 }
                             }} 
                             onPress={() => { navigation.navigate('List') }}/>
-                    <IconButton backgroundColor={colorMode === "dark" ? "black:alpha.70" : "white:alpha.70"} icon={<Icon as={<Ionicons name="heart-outline" />} />} borderRadius="15" _icon={{
-                                color: colorMode === "dark" ? "white" : "black",
+                    <IconButton backgroundColor={colorMode === "dark" ? "black:alpha.70" : "white:alpha.70"} icon={<Icon as={<Ionicons name="heart" />} />} borderRadius="15" _icon={{
+                                color: userLikes.includes(route.params.recipe_id) === true ? "#59DBB7" : colorMode === "dark" ? "white" : "black",
                                 size: "xl"
                             }} _hover={{
                                 bg: colorMode === "dark" ? "black" : "white"
@@ -77,7 +79,12 @@ export default function RecipeScreen({navigation, route}) {
                                 size: "2xl"
                                 }
                             }} 
-                            onPress={() => { console.log(`liked recipe ${route.params.recipe_id + ' ' + route.params.name}`) }}/>
+                            onPress={() => { console.log(`liked recipe ${route.params.recipe_id + ' ' + route.params.name}`) 
+                                sendLike(userInfo.id_user, route.params.recipe_id)
+                                userLikes.push(route.params.recipe_id)
+                                updateLikes(userLikes)
+                                setLikes(userLikes)
+                            }}/>
                 </HStack>
             </ZStack>
 

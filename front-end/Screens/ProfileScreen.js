@@ -1,5 +1,5 @@
 import { Box, HStack, VStack, ZStack, AspectRatio, IconButton, Image, Badge, Text, View, Icon, useColorMode} from 'native-base';
-import React, {useContext} from 'react';
+import React, {useContext, useState, useEffect} from 'react';
 import { Ionicons } from "@expo/vector-icons";
 import { AuthContext } from '../Contexts/AuthContext';
 
@@ -9,7 +9,17 @@ export default function Profile({navigation}) {
       toggleColorMode
   } = useColorMode();
 
-  const {userInfo} = useContext(AuthContext)
+  const {userInfo, userLikes} = useContext(AuthContext)
+  const [Likes, setLikes] = useState(userLikes);
+  
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+    console.log('Refreshed profile!');
+    setLikes(userLikes)
+    });
+    return unsubscribe;
+  },[navigation])
+
   return (
     <View backgroundColor={colorMode === "dark" ? "black" : "coolGray.100"} flex="1" >
       <View>
@@ -62,7 +72,7 @@ export default function Profile({navigation}) {
         <VStack space="5" mt="32" mx="8">
           <HStack space="8" alignItems="center" backgroundColor={colorMode === "dark" ? "gray.800" : "white"}  w="100%" borderRadius="15" p="5">
             <Icon mb="1" as={<Ionicons name={"heart"} />} color="#59DBB7" size="2xl" />
-            <Text fontWeight="bold" fontSize="lg">33 Recipes liked</Text>
+            <Text fontWeight="bold" fontSize="lg">{Likes.length} Recipes liked</Text>
           </HStack>
           
           <HStack space="8" alignItems="center" backgroundColor={colorMode === "dark" ? "gray.800" : "white"}  w="100%" borderRadius="15" p="5">
