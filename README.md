@@ -89,7 +89,7 @@ pip install beautifulsoup4
 - [@kylelobo](https://github.com/kylelobo) - Front-End with react native and Expo
 - [@sushiwaves](https://github.com/sushiwaves) - API running the Python script with Flask
 - [@kylelobo](https://github.com/kylelobo) - Cleaning the datas
-- [@kylelobo](https://github.com/kylelobo) - Machine Learning using sklearn and KNN algorithm
+- [@Pierre-CLT](https://github.com/Pierre-CLT) - Machine Learning using sklearn and KNN algorithm
 - [@Pernam75](https://github.com/Pernam75) - Machine Learning using sklearn and KNN algorithm
 
 ## 📝 License <a name = "license"></a>
