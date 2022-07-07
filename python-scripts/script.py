@@ -140,7 +140,7 @@ class Ingredient:
 
 
 class SmallRecipe:
-    DF = pd.read_csv("../src/recipesDB/RAW_recipes.csv")
+    # DF = pd.read_csv("../src/Small_Recipes")
 
     def __init__(self, recipe_id):
         self.recipe_id = int(recipe_id)
@@ -294,7 +294,7 @@ def get_liked_recipes(user_id, df):
 
 def main_function(user_id):
     #ratings = create_ratings_df(50, 50)
-    ratings = pd.read_csv('../src/recipesDB/note.csv')
+    ratings = pd.read_csv('../src/note.csv')
     similar_ids = []
     for id in get_liked_recipes(user_id, ratings):
         similar_ids.extend(find_similar_recipes(id, ratings, k=10))
