@@ -66,7 +66,7 @@ pip install numpy
 ```bash
 pip install pandas
 ```
-
+ 
 For machine-learning recommendation with KNN algorithm :
 
 ```bash
