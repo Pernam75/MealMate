@@ -38,7 +38,7 @@ npm install
 ```
 
 ```bash
-expo start
+expo start 
 ```
 
 Then scan the QR Code with your phone in order to run the app in Expo App
