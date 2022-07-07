@@ -140,7 +140,7 @@ class Ingredient:
 
 
 class SmallRecipe:
-    DF = pd.read_csv("../src/recipesDB/RAW_recipes.csv")
+    # DF = pd.read_csv("../src/Small_Recipes")
 
     def __init__(self, recipe_id):
         self.recipe_id = int(recipe_id)
@@ -294,7 +294,7 @@ def get_liked_recipes(user_id, df):
 
 def main_function(user_id):
     #ratings = create_ratings_df(50, 50)
-    ratings = pd.read_csv('../src/recipesDB/note.csv')
+    ratings = pd.read_csv('../src/note.csv')
     similar_ids = []
     for id in get_liked_recipes(user_id, ratings):
         similar_ids.extend(find_similar_recipes(id, ratings, k=10))
@@ -339,8 +339,6 @@ def get_all_recipes_index_json():
     return list_unique_in_index(in_index)
 
 def list_unique_in_index(in_index):
-    """
-    """
     retourne en list les valeurs unique de la colonne recipe_id
     return list(in_index['recipe_id'].unique())
 
@@ -366,6 +364,7 @@ with open('all_recipes.json', 'w') as f:
     print('new json ok')
 
 
+
 id = 137739
 recipe1 = SmallRecipe(id)
 page = requests.get('http://www.food.com/recipe/' + str(id))
@@ -386,6 +385,7 @@ tab = get_all_names()
 with open('all_recipes.json', 'w') as f:
     json.dump(tab, f, indent=4)
     print('new json ok')
-# ouverture du tableau de note des utilisateurs
-# besoin du fichier "RAW_interactions.csv"
+
+ouverture du tableau de note des utilisateurs
+besoin du fichier "RAW_interactions.csv"
 """

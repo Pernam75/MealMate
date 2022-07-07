@@ -21,7 +21,7 @@
 - [Getting Started](#getting_started)
 - [Dependencies](#dependencies)
 - [Authors](#authors)
-- [License](#license)
+- [Efrei](#efrei)
 
 ## 🧐 Features <a name = "features"></a>
 * Find the recipes that match you the most with our recommendation engine
@@ -86,13 +86,12 @@ pip install beautifulsoup4
 ## 🙇 Authors <a name = "authors"></a>
 
 - [@Senshiben](https://github.com/Senshiben-efrei) - Front-End with react native and Expo
-- [@kylelobo](https://github.com/kylelobo) - Front-End with react native and Expo
+- [@Broody-Q](https://github.com/broody-q) - Front-End with react native and Expo
 - [@sushiwaves](https://github.com/sushiwaves) - API running the Python script with Flask
-- [@kylelobo](https://github.com/kylelobo) - Cleaning the datas
+- [@AbelBoudaib](https://github.com/AbelBoudaib) - Cleaning the datas
 - [@Pierre-CLT](https://github.com/Pierre-CLT) - Machine Learning using sklearn and KNN algorithm
 - [@Pernam75](https://github.com/Pernam75) - Machine Learning using sklearn and KNN algorithm
 
-## 📝 License <a name = "license"></a>
-Efrei Paris
+## 🏫 Made in Efrei Paris <a name="efrei"></a>
 
 <a href="https://www.efrei.fr/"><img alt="Efrei Logo" src="https://github.com/Pernam75/MealMate/blob/main/src/EfreiLogo.png" width="179" height="58"></a>
