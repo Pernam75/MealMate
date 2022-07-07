@@ -1,6 +1,6 @@
 import React, {useState, useEffect, useContext} from 'react';
-import { ScrollView, Center, View, Input, Icon, Pressable, useColorMode, Text, Flex, FormControl, Radio, Badge } from 'native-base';
-import { Ionicons } from "@expo/vector-icons";
+import { ScrollView, Center, View, Input, Icon, Pressable, useColorMode, Text, Flex, FormControl, Button, Badge } from 'native-base';
+import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import Recipe from './Recipe';
 import SmallRecipe from './SmallRecipe';
 const Env = require('../Env/EvnVariables')
@@ -10,18 +10,25 @@ import { AuthContext } from '../Contexts/AuthContext';
 
 function Recomendations(props) {
     const likes = props.likes;
+    const [NumOfRecomendations, setNumOfRecomendations] = useState(5);
     if (likes > 4) {
-      return (
+        return (
         <View my="2">
             <Text fontSize="lg" fontWeight="bold" pl="3" pb="2">Recommended for you</Text>
             <ScrollView flex="1" horizontal={true} showsHorizontalScrollIndicator={true} persistentScrollbar={true}>
-                {props.Recomendation.slice(0,5).map(recipe => {return (
+                {props.Recomendation.slice(0,NumOfRecomendations).map(recipe => {return (
                 <Pressable onPress={() => {
                     props.navigation.navigate('recipe', recipe)}}
                     key={recipe.recipe_id}>
-                    <Recipe updater={props.updater} item={recipe} />
+                    <Recipe updater={props.updater} recomender={props.recomender} item={recipe} />
                 </Pressable>
                 )})}
+                <Button backgroundColor={props.colorMode === "dark" ? "black" : "coolGray.100"} onPress={() => {
+                    setNumOfRecomendations(NumOfRecomendations + 3)
+                    console.log('clicked')
+                }}>
+                    <Icon as={FontAwesome5} size="lg" name="chevron-circle-right" color="#59DBB7" />
+                </Button>
             </ScrollView>
         </View>
       );
@@ -39,7 +46,7 @@ export default function Recipes({navigation}) {
       toggleColorMode
     } = useColorMode();
 
-    const {userLikes} = useContext(AuthContext)
+    const {userLikes, userInfo} = useContext(AuthContext)
 
     const [recipe, setRecipe] = useState([]);
     const [Recomendation, setRecomendation] = useState([]);
@@ -56,17 +63,17 @@ export default function Recipes({navigation}) {
         { value: 'Vegan' },
         { value: 'Dessert' },
         { value: 'Inexpensive' },
-        { value: 'Apetiser' },
+        { value: 'Appetizers' },
         { value: 'Dietary' },
-        { value: 'Low Calories' },
+        { value: 'Gluten-free' },
     ];
 
-    async function fetchRecomendations () {
-        console.log(`${Env.default.ip_2}/api/machine_learning?id=1533`)
-        fetch(`${Env.default.ip_2}/api/machine_learning?id=1533`)
+    async function fetchRecomendations (id_user) {
+        console.log(`test ${Env.default.ip_2}/api/machine_learning?id=${id_user}`)
+        fetch(`${Env.default.ip_2}/api/machine_learning?id=${id_user}`)
         .then(response => response.json())
         .then((data) => {
-            console.log(data.recipe_list)
+            console.log('recomend',data.recipe_list)
             setRecomendation(RecipesById(recipeList, data.recipe_list))
         })
         .catch((error) => console.log(error.message))
@@ -111,7 +118,8 @@ export default function Recipes({navigation}) {
             console.log('Refreshed Main!');
             setRecipe(recipeList)
             setUpdateVal(UpdateVal + 1)
-            fetchRecomendations()
+            console.log(userInfo.id_user)
+            fetchRecomendations(userInfo.id_user)
         });
     return unsubscribe;
     },[navigation])
@@ -148,15 +156,15 @@ export default function Recipes({navigation}) {
 
                 <ScrollView maxW="3000" width="100%" _contentContainerStyle={{ minW: "72" }}>
 
-                    <View alignSelf="center" w="85%" borderColor="#59DBB7" borderRadius="15" borderWidth="5">
-                        <Recomendations navigation={navigation} updater={setUpdateVal} likes={userLikes.length} Recomendation={Recomendation}/>
+                    <View alignSelf="center" w="100%" >
+                        <Recomendations recomender={fetchRecomendations} colorMode={colorMode} navigation={navigation} updater={setUpdateVal} likes={userLikes.length} Recomendation={Recomendation}/>
                     </View>
 
                     {recipe.slice(0,10).map(recipe => {return (
                     <Pressable onPress={() => {
                         navigation.navigate('recipe', recipe)}}
                         key={recipe.recipe_id}>
-                        <Recipe updater={setUpdateVal} item={recipe} />
+                        <Recipe updater={setUpdateVal} recomender={fetchRecomendations} item={recipe} />
                     </Pressable>
                     )})}
                 </ScrollView>
