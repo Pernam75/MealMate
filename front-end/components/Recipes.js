@@ -56,6 +56,8 @@ export default function Recipes({navigation}) {
 
     const [UpdateVal, setUpdateVal] = useState(0);
 
+    const [NumOfRecipes, setNumOfRecipes] = useState(10);
+
     const tags = [
         { value: 'All' },
         { value: 'Breakfast' },
@@ -160,13 +162,21 @@ export default function Recipes({navigation}) {
                         <Recomendations recomender={fetchRecomendations} colorMode={colorMode} navigation={navigation} updater={setUpdateVal} likes={userLikes.length} Recomendation={Recomendation}/>
                     </View>
 
-                    {recipe.slice(0,10).map(recipe => {return (
+                    {recipe.slice(0,NumOfRecipes).map(recipe => {return (
                     <Pressable onPress={() => {
                         navigation.navigate('recipe', recipe)}}
                         key={recipe.recipe_id}>
                         <Recipe updater={setUpdateVal} recomender={fetchRecomendations} item={recipe} />
                     </Pressable>
                     )})}
+                    
+                    <Button mb="4" backgroundColor={colorMode === "dark" ? "black" : "coolGray.100"} onPress={() => {
+                        setNumOfRecipes(NumOfRecipes + 5)
+                        console.log('clicked more')
+                    }}>
+                        <Icon as={FontAwesome5} size="lg" name="chevron-circle-down" color="#59DBB7" />
+                    </Button>
+
                 </ScrollView>
             </Center>
         </View>
