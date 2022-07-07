@@ -17,7 +17,10 @@ export default function Recipe(props) {
     axios.post(`${Env.default.ip}/like`,{ id_user, id_recipe })
     .then(res =>{
       console.log(res.data)})
-  }
+    axios.post(`${Env.default.ip_2}/api/post-like?recipe_id=${id_recipe}&user_id=${id_user}`)
+    .then(res =>{
+      console.log(res.data)})
+}
 
   return (
   <Box  alignItems="center" py='2'>
@@ -33,6 +36,7 @@ export default function Recipe(props) {
                 userLikes.push(props.item.recipe_id)
                 updateLikes(userLikes)
                 props.updater(props.item.recipe_id)
+                props.recomender(userInfo.id_user)
 
               }} icon={<Icon as={<Octicons name="heart-fill" />} />} borderRadius="full" _icon={{
                   color: userLikes.includes(props.item.recipe_id) === true ? "#59DBB7" : colorMode === "dark" ? "white" : "black",
@@ -59,7 +63,7 @@ export default function Recipe(props) {
 
         <Stack backgroundColor={colorMode === "dark" ? "gray.900" : "white"}  p='4' space={2}>
           <HStack space="3" justifyContent="space-around" alignItems="center">
-            <Heading size="md" w='70%' ml="-1">
+            <Heading size="md" w='70%' ml="-1" numberOfLines={1} ellipsizeMode='tail'>
             {props.item.name}
             </Heading>
             <Icon as={<MaterialCommunityIcons name="timer-outline" />} />
@@ -71,7 +75,7 @@ export default function Recipe(props) {
           <HStack space={3} justifyContent="space-around">
             <Badge width="30%" color="black" variant="outline" rounded="xl" >{props.item.nutrition.calories + ' Kcal'}</Badge>
             <Badge width="30%" color="black" variant="outline" rounded="xl" >{props.item.nutrition.sugar + 'g sugar'}</Badge>
-            <Badge width="30%" color="black" variant="outline" rounded="xl" >{props.item.tags[5]}</Badge>
+            <Badge width="30%" color="black" variant="outline" rounded="xl" >{props.item.nutrition.fat + 'g fat'}</Badge>
           </HStack>
         </Stack>
       </Box>
