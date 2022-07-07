@@ -72,7 +72,7 @@ For machine-learning recommendation with KNN algorithm :
 ```bash
 pip install scikit-learn
 ```
-
+ 
 ```bash
 pip install scipy
 ```
