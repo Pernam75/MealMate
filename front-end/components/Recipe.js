@@ -36,7 +36,9 @@ export default function Recipe(props) {
                 userLikes.push(props.item.recipe_id)
                 updateLikes(userLikes)
                 props.updater(props.item.recipe_id)
-                props.recomender(userInfo.id_user)
+                if (userLikes.length === 5) {
+                  props.recomender(userInfo.id_user)                  
+                }
 
               }} icon={<Icon as={<Octicons name="heart-fill" />} />} borderRadius="full" _icon={{
                   color: userLikes.includes(props.item.recipe_id) === true ? "#59DBB7" : colorMode === "dark" ? "white" : "black",
