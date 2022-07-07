@@ -1,0 +1,28 @@
+[
+    {
+        "name": "Franprix",
+        "adress": "7 Av. de la République, 94800 Villejuif",
+        "url": "https://goo.gl/maps/aN53cpSHaDAJhLzH6"
+    },
+    {
+        "name": "Supermarché G20",
+        "adress": "114-116 Rue Jean Jaurès, 94800 Villejuif",
+        "url": "https://goo.gl/maps/s6DhnDyVbgFJwYtF7"
+    },
+    {
+        "name": "cocci super market",
+        "adress": "58 Rue Jean Jaurès, 94800 Villejuif",
+        "url": "https://goo.gl/maps/3rmkyUtUR5rkg5T69"
+    },
+    {
+        "name": "MONOPRIX VILLEJUIF",
+        "adress": "34 Rue Jean Jaurès, 94800 Villejuif",
+        "url": "https://goo.gl/maps/iSLckw6DK5EbvHBa9"
+    },
+    {
+        "name": "Carrefour Villejuif",
+        "adress": "67-81 Av. de Stalingrad, 94800 Villejuif",
+        "url": "https://goo.gl/maps/kSjnFFhe5kkhr6vU8"
+    }
+
+]
