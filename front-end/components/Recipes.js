@@ -17,7 +17,7 @@ function Recomendations(props) {
             <ScrollView flex="1" horizontal={true} showsHorizontalScrollIndicator={true} persistentScrollbar={true}>
                 {props.Recomendation.slice(0,5).map(recipe => {return (
                 <Pressable onPress={() => {
-                    navigation.navigate('recipe', recipe)}}
+                    props.navigation.navigate('recipe', recipe)}}
                     key={recipe.recipe_id}>
                     <Recipe updater={props.updater} item={recipe} />
                 </Pressable>
@@ -28,7 +28,7 @@ function Recomendations(props) {
     }
     return (
         <View backgroundColor="#59DBB7">
-            <Text alignSelf="center" fontSize="2xl" fontWeight="extrabold" color="white" textAlign="center" w="60%" my="5">Like at least 5 recipes to get custom recommendations</Text>
+            <Text alignSelf="center" fontSize="2xl" fontWeight="extrabold" color="white" textAlign="center" w="80%" my="5">Like at least 5 recipes to get custom recommendations</Text>
         </View>
     );
   }
@@ -149,7 +149,7 @@ export default function Recipes({navigation}) {
                 <ScrollView maxW="3000" width="100%" _contentContainerStyle={{ minW: "72" }}>
 
                     <View alignSelf="center" w="85%" borderColor="#59DBB7" borderRadius="15" borderWidth="5">
-                        <Recomendations updater={setUpdateVal} likes={userLikes.length} Recomendation={Recomendation}/>
+                        <Recomendations navigation={navigation} updater={setUpdateVal} likes={userLikes.length} Recomendation={Recomendation}/>
                     </View>
 
                     {recipe.slice(0,10).map(recipe => {return (
