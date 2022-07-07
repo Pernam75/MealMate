@@ -31,7 +31,7 @@ export default function CustomDrawer(props) {
             <View alignItems="center" pb="7">
                 <HStack space="6" alignItems="center">
                     <Text>Dark Mode</Text>
-                    <Switch offTrackColor="#59DBB7" isChecked={colorMode == "dark" ? 1 : 0} onToggle={toggleColorMode}/>
+                    <Switch offTrackColor="#59DBB7" onTrackColor="gray.500" isChecked={colorMode == "dark" ? true : false} onToggle={toggleColorMode}/>
                 </HStack>
                 <Divider bg="#59DBB7" mx="4" my="7" thickness="2" width="75%" self  />
                 <Pressable onPress={() => {logout()}}>

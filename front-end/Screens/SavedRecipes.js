@@ -1,8 +1,10 @@
-import { HStack, View, Icon, IconButton, Text, ScrollView, useColorMode } from 'native-base';
-import React, {useState, useEffect} from 'react';
+import { HStack, View, Icon, IconButton, Text, ScrollView, useColorMode, Button } from 'native-base';
+import React, {useState, useEffect, useContext} from 'react';
 import { AntDesign, Ionicons } from "@expo/vector-icons"
 import FavRecipe from '../components/FavRecipe';
 const Env = require('../Env/EvnVariables')
+const recipeList = require('../src/data/all_recipes.json')
+import { AuthContext } from '../Contexts/AuthContext'
 
 export default function Saved({navigation}) {
   const {
@@ -10,20 +12,27 @@ export default function Saved({navigation}) {
       toggleColorMode
   } = useColorMode();
 
+  const {userLikes} = useContext(AuthContext)
+
   const [fav, setFavs] = useState([]);
 
-  const GetRecipes = () => {
-      fetch(`${Env.default.ip}/recipes`)
-      .then(response => response.json())
-      .then((data) => {
-        setFavs(data.splice(0,15));
-      })
-      .catch((error) => console.log(error.message))
-  }
+  const RecipesById = (recipeList, idArray) => {
+    var resultArray = []
+    for (let index = 0; index < recipeList.length; index++) {
+        if (idArray.includes(recipeList[index].recipe_id)) {
+            resultArray.push(recipeList[index])
+        }
+    }
+    return(resultArray)
+}
 
   useEffect(() => {
-      GetRecipes()
-  },[])
+    const unsubscribe = navigation.addListener('focus', () => {
+    console.log('Refreshed Saves!');
+    setFavs(RecipesById(recipeList, userLikes))
+    });
+    return unsubscribe;
+  },[navigation])
   return (
     <View backgroundColor={colorMode === "dark" ? "black" : "coolGray.100"} flex={1} alignItems="center">
       <HStack backgroundColor={colorMode === "dark" ? "gray.900" : "white"}  space="16" alignItems="center" px="3"  pt="7" pb="1" borderRadius="15" shadow="3">
@@ -55,6 +64,7 @@ export default function Saved({navigation}) {
       <ScrollView maxW="3000" width="100%" _contentContainerStyle={{ minW: "72" }}>
           {fav.map(fav => {return <FavRecipe key={fav.id_recipe} item={fav}/>})}
       </ScrollView>
+
 
     </View>
   );

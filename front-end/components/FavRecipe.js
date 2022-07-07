@@ -12,9 +12,9 @@ export default function FavRecipe(props) {
             <HStack space="3" justifyContent="space-around" alignItems="center" flex="1" >
                 <AspectRatio w="20%" ratio={2 / 1.3}>
                 <Image borderRadius="10" source={{
-                uri: props.item.image_url}} alt="image" />
+                uri: props.item.image}} alt="image" />
                 </AspectRatio>
-              <Text width="65%"> { props.item.recipe_name } </Text>
+              <Text width="65%"> { props.item.name } </Text>
               <VStack>
                 <Text></Text>
                 <Text></Text>

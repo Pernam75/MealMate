@@ -339,7 +339,6 @@ def get_all_recipes_index_json():
     return list_unique_in_index(in_index)
 
 def list_unique_in_index(in_index):
-
     retourne en list les valeurs unique de la colonne recipe_id
     return list(in_index['recipe_id'].unique())
 
@@ -386,6 +385,7 @@ tab = get_all_names()
 with open('all_recipes.json', 'w') as f:
     json.dump(tab, f, indent=4)
     print('new json ok')
+
 ouverture du tableau de note des utilisateurs
 besoin du fichier "RAW_interactions.csv"
 """
