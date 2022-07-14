@@ -1,6 +1,6 @@
 <p align="center">
   <a href="" rel="noopener">
- <img width=350 height=350 src="https://github.com/Pernam75/MealMate/blob/main/front-end/src/images/logo_h.png?" alt="Meal Mate logo"></a>
+ <img src="https://github.com/Pernam75/MealMate/blob/main/front-end/src/images/logo_w.png?" alt="Meal Mate logo"></a>
 </p>
 
 <h3 align="center">Meal Mate</h3>
@@ -38,7 +38,7 @@ npm install
 ```
 
 ```bash
-expo start
+expo start 
 ```
 
 Then scan the QR Code with your phone in order to run the app in Expo App
@@ -66,13 +66,13 @@ pip install numpy
 ```bash
 pip install pandas
 ```
-
+ 
 For machine-learning recommendation with KNN algorithm :
 
 ```bash
 pip install scikit-learn
 ```
-
+ 
 ```bash
 pip install scipy
 ```
